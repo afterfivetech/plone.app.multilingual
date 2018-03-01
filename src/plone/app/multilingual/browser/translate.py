@@ -10,9 +10,15 @@ from Products.CMFPlone.interfaces import ILanguage
 from Products.Five import BrowserView
 from six.moves import urllib
 from zope.component import getUtility
+from plone.i18n.normalizer import idnormalizer
 
 import json
 
+
+
+def _replacements():
+    REPLACEMENTS = {u'\u2014':'-', u'\u2019':"'", u'\u2018':"'", u'\u201d':'"', u'\u201c':'"'}
+    return {ord(k): ord(v) for k, v in REPLACEMENTS.iteritems()}
 
 def google_translate(question, key, lang_target, lang_source):
     length = len(question)
@@ -75,7 +81,7 @@ class gtranslation_service_dexterity(BrowserView):
                 
             field = self.request.form['field'].split('.')[-1]
             if hasattr(orig_object, field):
-                question = getattr(orig_object, field, '')
+                question = getattr(orig_object, field, '').translate(_replacements())
                 if hasattr(question, 'raw'):
                     question = question.raw
                 else:
