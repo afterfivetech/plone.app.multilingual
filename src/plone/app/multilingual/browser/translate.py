@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from Acquisition import aq_inner
+from plone import api
 from plone.app.multilingual import _
 from plone.app.multilingual.interfaces import IMultiLanguageExtraOptionsSchema
 from plone.app.multilingual.interfaces import ITranslationManager
@@ -54,13 +55,24 @@ class gtranslation_service_dexterity(BrowserView):
                  'lang_source' in self.request.form.keys())):
             return _("Need a field")
         else:
+            
             manager = ITranslationManager(self.context)
             registry = getUtility(IRegistry)
             settings = registry.forInterface(IMultiLanguageExtraOptionsSchema,
                                              prefix="plone")
             lang_target = ILanguage(self.context).get_language()
             lang_source = self.request.form['lang_source']
-            orig_object = manager.get_translation(lang_source)
+            urls = self.request.HTTP_REFERER.split('++addtranslation++')
+            if urls:
+                obj_uid = urls[-1]
+                obj = api.content.get(UID=obj_uid)
+                if obj:
+                    orig_object = obj
+                else:
+                   orig_object = manager.get_translation(lang_source) 
+            else:
+                orig_object = manager.get_translation(lang_source)
+                
             field = self.request.form['field'].split('.')[-1]
             if hasattr(orig_object, field):
                 question = getattr(orig_object, field, '')
