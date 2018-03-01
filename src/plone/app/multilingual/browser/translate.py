@@ -78,8 +78,11 @@ class gtranslation_service_dexterity(BrowserView):
                 question = getattr(orig_object, field, '')
                 if hasattr(question, 'raw'):
                     question = question.raw
+                else:
+                    question = question.encode('unicode-escape')
             else:
                 return _("Invalid field")
+            
             return google_translate(question,
                                     settings.google_translation_key,
                                     lang_target,
